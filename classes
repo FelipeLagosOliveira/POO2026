@@ -1,0 +1,44 @@
+class Campus:
+    def __init__(self):
+        self.nome = "" 
+        self.endereco = ""
+    
+    def __str__(self):
+        return f"Campus: {self.nome}"
+    
+class Estudante:
+    def __init__(self,nome):
+        self.nome = nome 
+        self.email = ""
+        self.cpf = ""
+        self.telefone = ""
+        self.data_nasc = ""
+
+    def __str__(self):
+        return f"Estudante: {self.nome}"
+    
+    def apresentar(self):
+        print(f"O(a) {self.nome} nasceu em {self.data_nasc} ")
+        if (self.cpf == ""):
+            print("O estudante não cadastrou CPF")
+        else:
+            print("CPF:" , self.cpf[0,3] , "...")
+
+
+felipe = Estudante("Felipe Lagos")
+
+felipe.cpf = "111.111.111-11"
+felipe.data_nasc = "25/01/2009"
+felipe.email = "felipe.kwai123@gmail.com"
+felipe.telefone = "44997034595"
+
+
+amanda = Estudante("Amanda Pires")
+
+amanda.cpf = "098.613.049-40"
+amanda.data_nasc = "05/03/2009"
+amanda.email = "bugzinhafofs539@gmail.com"
+amanda.telefone = "44999908849"
+
+felipe.apresentar()
+amanda.apresentar()
