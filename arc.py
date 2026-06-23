@@ -2,7 +2,7 @@ import arcade, random
 
 ALTURA = 800
 LARGURA = 600
-NOME = "MEU JÓGOS"
+NOME = "MEU JOGO"
 class Player(arcade.Sprite):
     def __init__(self):
         super().__init__("direita_p.png", scale= 1)
@@ -88,10 +88,30 @@ class MoedaEspecial(arcade.Sprite):
         if self.bottom <= 0 or self.top >= 600:
             self.change_y *= -1
 
-
-class JanelaJogo(arcade.Window):
+# Criação de Tela Inicial
+class TelaInicial(arcade.View):
     def __init__(self):
-        super().__init__(800, 600, "Coletor de Moedas")
+        super().__init__()
+    
+    def on_draw(self):
+        self.clear()
+        arcade.draw_text("Jogo - A fada das moedas", LARGURA/2, 400, arcade.color.ROYAL_PURPLE, 18, anchor_x="center")
+        arcade.draw_text("Pressione [J] para Jogar", LARGURA/2, 300, arcade.color.DARK_RED, 18,)
+        arcade.draw_text("Pressione [Esc] para Sair", LARGURA/2, 250, arcade.color.DARK_RED, 18,)
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.J:
+            tela_jogo = TelaJogo()
+            self.window.show_view(tela_jogo)
+        
+        elif key == arcade.key.ESCAPE:
+            arcade.close_window()
+        
+        
+
+class TelaJogo(arcade.View):
+    def __init__(self):
+        super().__init__()
         arcade.set_background_color(arcade.color.PURPLE)
 
         self.velocidade = 3
@@ -170,8 +190,9 @@ class JanelaJogo(arcade.Window):
         elif key == arcade.key.S: # Seta de baixo ou s
             self.jogador.change_y = -self.velocidade
 
-        if key == arcade.key.ESCAPE: 
-            arcade.close_window()
+        if (key == arcade.key.ESCAPE): 
+            tela_incial = TelaInicial()
+            self.window.show_view(tela_incial)
 
 
     def on_key_release(self, key, modifiers):
@@ -181,12 +202,22 @@ class JanelaJogo(arcade.Window):
         if key in [arcade.key.W, arcade.key.S]:
             self.jogador.change_y = 0
 
+'''class TelaVitoria(arcade.View):
+    def __init__(self):
+
+    def on_draw(self):'''
+        
 
 
-def main():
-    tela = JanelaJogo()
+def executar():
+    #Cria a janela principal do jogo
+    
+    janela = arcade.Window(LARGURA, ALTURA,"Jogo")
+    # Cria uma tela inicial 
+    tela_inicial = TelaInicial()
+    # Alimenta a janela com o menu e roda o loop do jogo
+    janela.show_view(tela_inicial)
     arcade.run()
 
 if __name__ == "__main__":
-    main()
-
+    executar()
