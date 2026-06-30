@@ -1,7 +1,7 @@
 import arcade, random
 
-ALTURA = 800
-LARGURA = 600
+ALTURA = 600
+LARGURA = 800
 NOME = "MEU JOGO"
 class Player(arcade.Sprite):
     def __init__(self):
@@ -19,11 +19,11 @@ class Player(arcade.Sprite):
         elif self.change_x < 0:
             self.texture = self.textura_esquerda
 
-        if self.right > 800:
-            self.right = 800
+        if self.right > LARGURA:
+            self.right = LARGURA
             self.change_x = 0
-        if self.top > 600:
-            self.top = 600
+        if self.top > ALTURA:
+            self.top = ALTURA
             self.change_y = 0
         if self.left < 0:
             self.left = 0
@@ -60,11 +60,11 @@ class Moeda(arcade.Sprite):
         self.center_x += self.change_x
         self.center_y += self.change_y
 
-        if self.right > 800:
-            self.right = 800
+        if self.right > LARGURA:
+            self.right = LARGURA
             self.change_x = 0
-        if self.top > 600:
-            self.top = 600
+        if self.top > LARGURA:
+            self.top = LARGURA
             self.change_y = 0
         if self.left < 0:
             self.left = 0
@@ -82,10 +82,10 @@ class MoedaEspecial(arcade.Sprite):
         self.center_y += self.change_y
 
         # Rebote no Eixo X
-        if self.left <= 0 or self.right >= 800:
+        if self.left <= 0 or self.right >= LARGURA:
             self.change_x *= -1  
         # Rebote no Eixo Y
-        if self.bottom <= 0 or self.top >= 600:
+        if self.bottom <= 0 or self.top >= ALTURA:
             self.change_y *= -1
 
 # Criação de Tela Inicial
@@ -96,8 +96,8 @@ class TelaInicial(arcade.View):
     def on_draw(self):
         self.clear()
         arcade.draw_text("Jogo - A fada das moedas", LARGURA/2, 400, arcade.color.ROYAL_PURPLE, 18, anchor_x="center")
-        arcade.draw_text("Pressione [J] para Jogar", LARGURA/2, 300, arcade.color.DARK_RED, 18,)
-        arcade.draw_text("Pressione [Esc] para Sair", LARGURA/2, 250, arcade.color.DARK_RED, 18,)
+        arcade.draw_text("Pressione [J] para Jogar", LARGURA/2, 300, arcade.color.DARK_RED, 18)
+        arcade.draw_text("Pressione [Esc] para Sair", LARGURA/2, 250, arcade.color.DARK_RED, 18)
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.J:
@@ -116,6 +116,8 @@ class TelaJogo(arcade.View):
 
         self.velocidade = 3
         self.pontuacao = 0
+
+        self.tirar_ponto = True
 
         # Lista de moedas
         self.sprite_moedas = arcade.SpriteList()
@@ -176,7 +178,21 @@ class TelaJogo(arcade.View):
         colisao_vilao = arcade.check_for_collision_with_list(self.jogador,self.sprite_vilao)
         for vilao in colisao_vilao:
             if vilao == self.vilao:
-                self.pontuacao -= 3
+                if self.tirar_ponto:
+                    self.pontuacao -= 3
+                    self.tirar_ponto = False
+
+        if len (colisao_vilao) == 0:
+           self.tirar_ponto = True        
+                
+
+
+        
+        
+        # Se não houver mais moedas, termina o jogo
+        if len(self.sprite_moedas) == 0:
+            tela_vitoria = TelaVitoria(self.pontuacao, 0)  # 0 = tempo por enquanto
+            self.window.show_view(tela_vitoria)
 
 
         # Gerenciamento do Teclado (Explicado abaixo)
@@ -202,17 +218,36 @@ class TelaJogo(arcade.View):
         if key in [arcade.key.W, arcade.key.S]:
             self.jogador.change_y = 0
 
-'''class TelaVitoria(arcade.View):
-    def __init__(self):
-
-    def on_draw(self):'''
         
+
+class TelaVitoria(arcade.View):
+    def __init__(self, pontuacao_final, tempo_final):
+        super().__init__()
+        self.pontuacao = pontuacao_final
+        self.cronometro = tempo_final
+
+    def on_draw(self):
+        self.clear()
+        arcade.draw_text("Fim do Jogo",LARGURA/2, 400, arcade.color.ROYAL_PURPLE, 18, anchor_x="center")
+        arcade.draw_text(f"Sua pontuação foi{self.pontuacao}",LARGURA/2, 380, arcade.color.ROYAL_PURPLE, 18, anchor_x="center")
+        arcade.draw_text(f"Tempo: {self.cronometro}",LARGURA/2, 360, arcade.color.ROYAL_PURPLE, 18, anchor_x="center")
+        arcade.draw_text("Pressione [J] para Jogar", LARGURA/2, 300, arcade.color.DARK_RED, 18,anchor_x="center")
+        arcade.draw_text("Pressione [Esc] para Sair", LARGURA/2, 250, arcade.color.DARK_RED, 18,anchor_x="center")
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.J:
+            tela_jogo = TelaJogo()
+            self.window.show_view(tela_jogo)
+        
+        elif key == arcade.key.ESCAPE:
+            arcade.close_window()
+
 
 
 def executar():
     #Cria a janela principal do jogo
     
-    janela = arcade.Window(LARGURA, ALTURA,"Jogo")
+    janela = arcade.Window(LARGURA, ALTURA, "Jogo")
     # Cria uma tela inicial 
     tela_inicial = TelaInicial()
     # Alimenta a janela com o menu e roda o loop do jogo
