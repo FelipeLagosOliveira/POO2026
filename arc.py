@@ -51,6 +51,25 @@ class Vilao(arcade.Sprite):
         if self.bottom <= 0 or self.top >= 600:
             self.change_y *= -1
 
+class VilaoEspecial(arcade.Sprite):
+    def __init__(self):
+        super().__init__("vilaodireita.png", scale=0.1)
+        
+        self.textura_direita = self.texture
+        self.textura_esquerda = arcade.load_texture("vilaoesquerda.png")
+
+
+    def update(self, delta_time):
+        self.center_x += self.change_x
+        self.center_y += self.change_y
+
+        # Rebote no Eixo X
+        if self.left <= 0 or self.right >= 800:
+            self.change_x *= -1  
+        # Rebote no Eixo Y
+        if self.bottom <= 0 or self.top >= 600:
+            self.change_y *= -1
+
 
 class Moeda(arcade.Sprite):
     def __init__(self):
