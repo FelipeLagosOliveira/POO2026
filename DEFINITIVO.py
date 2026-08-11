@@ -8,7 +8,16 @@ NOME = "A Fada das Moedas"
 VELOCIDADE = 3
 VELOCIDADE_VILAO_ESPECIAL = 5
 ARQUIVO_FUNDO = "fundo.jpg"
+GRAVIDADE = 0.5
+FORCA_PULO = 16
 
+class Bloco(arcade.Sprite):
+    def __init__ (self, x: float, y: float):
+        #Carrega a imagem do bloco de terra com escal de 0.5
+        super().__init__("bloco.png", scale = 1)
+        #Define a posição inicial no momento da criação do objeto
+        self.center_x = x
+        self.center_y = y
 
 class TelaComFundo(arcade.View):
     """View base que desenha o fundo padronizado em todas as telas."""
@@ -35,7 +44,7 @@ class Player(arcade.Sprite):
 
     def update(self, delta_time):
         self.center_x += self.change_x
-        self.center_y += self.change_y
+        
 
         # Atualiza a orientação da textura
         if self.change_x > 0:
@@ -47,15 +56,11 @@ class Player(arcade.Sprite):
         if self.right > LARGURA:
             self.right = LARGURA
             self.change_x = 0
-        if self.top > ALTURA:
-            self.top = ALTURA
-            self.change_y = 0
+        
         if self.left < 0:
             self.left = 0
             self.change_x = 0
-        if self.bottom < 0:
-            self.bottom = 0
-            self.change_y = 0
+        
 
 
 class Vilao(arcade.Sprite):
@@ -233,6 +238,26 @@ class TelaJogo(TelaComFundo):
         self.sprite_vilao_especial = arcade.SpriteList()
         self.sprite_vilao_especial.append(self.vilao_especial)
 
+        #Criando os blocos
+        self.sprite_blocos = arcade.SpriteList()
+        for x in range(32, LARGURA + 32, 64):
+            chao = Bloco(x=x, y=30)
+            self.sprite_blocos.append(chao)
+
+        # Criando uma plataforma suspensa com 2 blocos
+        posicoes_plataforma = [(300, 250), (550, 250)]
+        for x, y in posicoes_plataforma:
+            plataforma = Bloco(x, y)
+            self.sprite_blocos.append(plataforma)
+
+        # Adicionando a mecânica da física
+        self.engine_fisica = arcade.PhysicsEnginePlatformer(
+            player_sprite = self.jogador,
+            walls = self.sprite_blocos,
+            gravity_constant = GRAVIDADE
+        )
+
+
     def on_draw(self):
         self.clear()
         # 1. Desenha o fundo primeiro
@@ -243,6 +268,7 @@ class TelaJogo(TelaComFundo):
         self.sprite_vilao.draw()
         self.sprite_vilao_especial.draw()
         self.sprite_jogador.draw()
+        self.sprite_blocos.draw()
 
         # 3. Desenha a interface (HUD)
         arcade.draw_text(f"Moedas Coletadas: {self.pontuacao}", 10, 570,
@@ -251,13 +277,16 @@ class TelaJogo(TelaComFundo):
                           arcade.color.YELLOW, 14)
 
     def on_update(self, delta_time):
+
+        # Atualizar a fisica
+        self.engine_fisica.update()
+
         self.tempo_decorrido += delta_time
         self.sprite_moedas.update()
         self.sprite_jogador.update()
         self.sprite_vilao.update()
         self.sprite_vilao_especial.update()
 
-        
 
         # Colisão com moedas
         for moeda in arcade.check_for_collision_with_list(self.jogador, self.sprite_moedas):
@@ -290,12 +319,19 @@ class TelaJogo(TelaComFundo):
             self.jogador.change_x = -self.velocidade
         elif key == arcade.key.D:
             self.jogador.change_x = self.velocidade
-        elif key == arcade.key.W:
-            self.jogador.change_y = self.velocidade
-        elif key == arcade.key.S:
-            self.jogador.change_y = -self.velocidade
         elif key == arcade.key.ESCAPE:
             self.window.show_view(TelaInicial())
+
+        #Verifica a tela pressionada e da o movimento no eixo certo
+        if(key == arcade.key.RIGHT):
+            self.jogador.change_x += self.velocidade
+        elif(key == arcade.key.LEFT):
+            self.jogador.change_x -= self.velocidade
+
+        if key == arcade.key.W or key == arcade.key.SPACE:
+            if self.engine_fisica.can_jump():
+                self.jogador.change_y = 16 # força do pulo
+
 
     def on_key_release(self, key, modifiers):
         if key in (arcade.key.A, arcade.key.D):
