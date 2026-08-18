@@ -198,25 +198,6 @@ class TelaJogo(TelaComFundo):
         self.pontuacao = 0
         self.tempo_decorrido = 0.0
         self.tirar_ponto = True
-
-        # Criar moedas
-        self.sprite_moedas = arcade.SpriteList()
-        for _ in range(25):
-            moeda = Moeda()
-            moeda.center_x = random.randint(50, LARGURA - 50)
-            moeda.center_y = random.randint(50, ALTURA - 50)
-            self.sprite_moedas.append(moeda)
-
-        self.moedas_especiais = arcade.SpriteList()
-        for _ in range(5):
-            moeda = MoedaEspecial()
-            moeda.center_x = random.randint(80, LARGURA - 80)
-            moeda.center_y = random.randint(80, ALTURA - 80)
-            moeda.change_x = random.choice([-1, 1]) * self.velocidade
-            moeda.change_y = random.choice([-1, 1]) * (self.velocidade - 1)
-            self.moedas_especiais.append(moeda)
-            self.sprite_moedas.append(moeda)
-
         # Criar jogador
         self.jogador = Player()
         self.jogador.center_x = 50
@@ -237,17 +218,17 @@ class TelaJogo(TelaComFundo):
         self.vilao_especial.change_y = VELOCIDADE_VILAO_ESPECIAL - 1
         self.sprite_vilao_especial = arcade.SpriteList()
         self.sprite_vilao_especial.append(self.vilao_especial)
-
+        
         #Criando os blocos
         self.sprite_blocos = arcade.SpriteList()
         for x in range(32, LARGURA + 32, 64):
-            chao = Bloco(x=x, y=30)
-            self.sprite_blocos.append(chao)
-
+                chao = Bloco(x=x, y=30)
+                self.sprite_blocos.append(chao)
+        
         # Criando uma plataforma suspensa com 2 blocos
         posicoes_plataforma = [(300, 250), (550, 250)]
         for x, y in posicoes_plataforma:
-            plataforma = Bloco(x, y)
+            plataforma = Bloco(x, y) 
             self.sprite_blocos.append(plataforma)
 
         # Adicionando a mecânica da física
@@ -256,6 +237,41 @@ class TelaJogo(TelaComFundo):
             walls = self.sprite_blocos,
             gravity_constant = GRAVIDADE
         )
+        # Adicionando a mecânica da física
+        self.engine_fisica_vilao_especial = arcade.PhysicsEnginePlatformer(
+            player_sprite = self.vilao_especial,
+            walls = self.sprite_blocos,
+            gravity_constant = GRAVIDADE
+        )
+
+        # Criar moedas
+        self.sprite_moedas = arcade.SpriteList()
+        for _ in range(25):
+            moeda = Moeda()
+        
+            # Loop para garantir que a moeda não nasça em cima de um bloco
+            while True:
+                moeda.center_x = random.randint(50, LARGURA - 50)
+                moeda.center_y = random.randint(50, ALTURA - 50)
+                # Verifica se há colisão com os blocos
+                if not arcade.check_for_collision_with_list(moeda, self.sprite_blocos):
+                    break  # Se não houver colisão, sai do loop e aceita a posição
+            self.sprite_moedas.append(moeda)
+
+        self.moedas_especiais = arcade.SpriteList()
+        for _ in range(5):
+            moeda = MoedaEspecial()
+            while True:
+                moeda.center_x = random.randint(80, LARGURA - 80)
+                moeda.center_y = random.randint(80, ALTURA - 80)
+                
+                if not arcade.check_for_collision_with_list(moeda, self.sprite_blocos):
+                    break
+            moeda.change_x = random.choice([-1, 1]) * self.velocidade
+            moeda.change_y = random.choice([-1, 1]) * (self.velocidade - 1)
+            self.moedas_especiais.append(moeda)
+            self.sprite_moedas.append(moeda)
+
 
 
     def on_draw(self):
@@ -286,6 +302,9 @@ class TelaJogo(TelaComFundo):
         self.sprite_jogador.update()
         self.sprite_vilao.update()
         self.sprite_vilao_especial.update()
+
+        self.engine_fisica.update()
+        self.engine_fisica_vilao_especial.update()
 
 
         # Colisão com moedas
